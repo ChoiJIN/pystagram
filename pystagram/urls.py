@@ -19,13 +19,29 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 from photo.models import Photo
+from photo import views
+from profiles.urls import urlpatterns as profile_urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^photo/(?P<photo_id>\d+)/$', views.single_photo, name='view_single_photo'),
+    url(r'^photo/upload/$', views.new_photo, name='new_photo'),
     url(
-        r'^photo/(?P<photo_id>\d+)/$',
-        'photo.views.single_photo',
-        name='view_single_photo'
+        r'^accounts/login/',
+        'django.contrib.auth.views.login',
+        name='login',
+        kwargs={
+            'template_name': 'login.html'
+        }
+    ),
+    url(
+        r'^accounts/logout/',
+        'django.contrib.auth.views.logout',
+        name='logout'
+    ),
+    url(
+        r'^user/',
+        include(profile_urls, namespace='profiles'),
     ),
 ]
 

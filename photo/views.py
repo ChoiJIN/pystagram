@@ -1,9 +1,11 @@
 # coding: utf-8
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 
 from .models import Photo
+from .forms import PhotoEditForm
 
 def single_photo(request, photo_id):
     photo = get_object_or_404(Photo, pk=photo_id)
@@ -16,4 +18,29 @@ def single_photo(request, photo_id):
             photo_id=photo_id,
             photo_url=photo.image_file.url
         )
+    )
+
+@login_required
+def new_photo(request):
+    if not request.user.is_authenticated():
+        return redirect(settings.LOGIN_URL)
+
+    if request.method == "GET":
+        edit_form = PhotoEditForm()
+    elif request.method == "POST":
+        edit_form = PhotoEditForm(request.POST, request.FILES)
+
+        if edit_form.is_valid():
+            new_photo = edit_form.save(commit=False)
+            new_photo.user = request.user
+            new_photo.save()
+
+            return redirect(new_photo.get_absolute_url())
+
+    return render(
+        request,
+        'new_photo.html',
+        {
+            'form': edit_form,
+        }
     )
